@@ -1,6 +1,19 @@
-﻿import React, { useState, useEffect } from 'react';
-import { supabase } from './lib/supabase';
+﻿import React, { Suspense, useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ErrorBoundary } from 'react-error-boundary';
+import { supabase, validateConnection } from './lib/supabase';
+import LoadingSpinner from './components/ui/LoadingSpinner';
+import ErrorFallback from './components/ui/ErrorFallback';
 import { generateRoomCode, isValidRoomCode, formatRoomCode } from './utils/roomCode';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Lazy load pages
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const CreateSessionPage = React.lazy(() => import('./pages/CreateSessionPage'));
+const OrganizerPage = React.lazy(() => import('./pages/OrganizerPage'));
+const LoginPage = React.lazy(() => import('./pages/LoginPage'));
+const SignUpPage = React.lazy(() => import('./pages/SignUpPage'));
 
 function App() {
   const [dbStatus, setDbStatus] = useState('Checking...');
@@ -21,6 +34,14 @@ function App() {
     };
 
     testConnection();
+  }, []);
+
+  useEffect(() => {
+    validateConnection().then(isValid => {
+      if (!isValid) {
+        console.error('Database connection failed');
+      }
+    });
   }, []);
 
   const testRoomCode = () => {
@@ -56,60 +77,39 @@ function App() {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      fontFamily: 'Arial, sans-serif',
-      backgroundColor: '#f3f4f6'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        textAlign: 'center',
-        maxWidth: '500px'
-      }}>
-        <h1 style={{ color: '#2563eb', marginBottom: '1rem' }}>
-          🎉 VoicePass Works!
-        </h1>
-        <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-          Room code fix applied + Supabase integration!
-        </p>
-        
-        <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
-          <strong>Database Status:</strong><br />
-          <span style={{ fontSize: '0.9em' }}>{dbStatus}</span>
-        </div>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <AuthProvider>
+        <Router>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+              <Route 
+                path="/create" 
+                element={
+                  <ProtectedRoute>
+                    <CreateSessionPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/organizer/:roomCode" 
+                element={
+                  <ProtectedRoute>
+                    <OrganizerPage />
+                  </ProtectedRoute>
+                } 
+              />
+            </Routes>
+          </Suspense>
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
+  );
+}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button 
-            style={{
-              backgroundColor: '#2563eb',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
-            onClick={testRoomCode}
-          >
-            Test 8-Char Room Code
-          </button>
-          
-          <button 
-            style={{
-              backgroundColor: '#059669',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
-            onClick={testDatabase}
-          >
+export default App;
             Test Database Connection
           </button>
         </div>

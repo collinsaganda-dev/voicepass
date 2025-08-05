@@ -1,23 +1,26 @@
-﻿export function generateRoomCode(length: number = 8): string {
-  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let result = '';
+﻿// Exclude similar looking characters (0/O, 1/I)
+const SAFE_CHARACTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ROOM_CODE_LENGTH = 8;
+
+export function generateRoomCode(): string {
+  const array = new Uint32Array(ROOM_CODE_LENGTH);
+  crypto.getRandomValues(array);
   
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    result += characters.charAt(randomIndex);
-  }
-  
-  return result;
+  return Array.from(array)
+    .map(x => SAFE_CHARACTERS[x % SAFE_CHARACTERS.length])
+    .join('');
 }
 
 export function isValidRoomCode(code: string): boolean {
-  const roomCodeRegex = /^[A-Z0-9]{8}$/;
-  return roomCodeRegex.test(code);
+  if (!code || typeof code !== 'string') return false;
+  const normalizedCode = code.toUpperCase().trim();
+  return normalizedCode.length === ROOM_CODE_LENGTH && 
+         normalizedCode.split('').every(char => SAFE_CHARACTERS.includes(char));
 }
 
 export function formatRoomCode(code: string): string {
-  if (code.length === 8) {
-    return `${code.slice(0, 4)}-${code.slice(4)}`;
-  }
-  return code;
+  const normalizedCode = code.toUpperCase().trim();
+  return normalizedCode.length === ROOM_CODE_LENGTH 
+    ? `${normalizedCode.slice(0, 4)}-${normalizedCode.slice(4)}`
+    : normalizedCode;
 }
