@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npx tsc && npx vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -31,5 +31,8 @@
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
