@@ -44,38 +44,6 @@ function App() {
     });
   }, []);
 
-  const testRoomCode = () => {
-    const code = generateRoomCode();
-    const isValid = isValidRoomCode(code);
-    const formatted = formatRoomCode(code);
-    
-    alert(`Generated: ${code}\nValid: ${isValid}\nFormatted: ${formatted}`);
-  };
-
-  const testDatabase = async () => {
-    try {
-      const testCode = generateRoomCode();
-      const { data, error } = await supabase
-        .from('sessions')
-        .insert([{
-          name: 'Test Session',
-          room_code: testCode,
-          organizer_id: crypto.randomUUID() // Generate a proper UUID
-        }])
-        .select();
-
-      if (error) {
-        alert(`Database test failed: ${error.message}`);
-        console.error('Database error details:', error);
-      } else {
-        alert(`✅ Database test successful!\nCreated session: ${data[0].name}\nRoom code: ${data[0].room_code}`);
-      }
-    } catch (err) {
-      alert(`Database error: ${err.message}`);
-      console.error('Catch error:', err);
-    }
-  };
-
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <AuthProvider>
@@ -106,15 +74,6 @@ function App() {
         </Router>
       </AuthProvider>
     </ErrorBoundary>
-  );
-}
-
-export default App;
-            Test Database Connection
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 
