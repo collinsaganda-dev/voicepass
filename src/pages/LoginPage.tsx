@@ -15,7 +15,7 @@ export default function LoginPage() {
       await signIn(email, password);
       navigate('/create');
     } catch (error) {
-      setError(error.message);
+      setError((error as Error).message);
     }
   };
 

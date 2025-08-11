@@ -3,9 +3,11 @@ import { Database } from '../types/supabase';
 
 // Declare environment variables types
 declare global {
-  interface ImportMetaEnv {
-    VITE_SUPABASE_URL: string;
-    VITE_SUPABASE_ANON_KEY: string;
+  interface ImportMeta {
+    readonly env: {
+      VITE_SUPABASE_URL: string;
+      VITE_SUPABASE_ANON_KEY: string;
+    };
   }
 }
 
@@ -42,16 +44,17 @@ export const supabase: SupabaseClient<Database> = createClient(
 export async function validateConnection(retries = 3): Promise<boolean> {
   for (let i = 0; i < retries; i++) {
     try {
-      const { error } = await Promise.race([
+      const result = await Promise.race([
         supabase.from('sessions').select('count', { count: 'exact', head: true }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Connection timeout')), 5000)
         )
       ]);
       
-      if (!error) return true;
+      const typedResult = result as { error?: { message: string } };
+      if (!typedResult.error) return true;
       
-      console.warn(`Connection attempt ${i + 1} failed:`, error.message);
+      console.warn(`Connection attempt ${i + 1} failed:`, typedResult.error.message);
       if (i < retries - 1) await new Promise(resolve => setTimeout(resolve, 1000));
       
     } catch (error) {
@@ -63,8 +66,4 @@ export async function validateConnection(retries = 3): Promise<boolean> {
   return false;
 }
 
-// Add error handling middleware
-supabase.auth.onError((error) => {
-  console.error('Supabase auth error:', error.message);
-  // You can add custom error handling here, like showing a notification
-});
+// Error handling is handled through auth state changes

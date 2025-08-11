@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -22,7 +22,7 @@ export default function SignUpPage() {
       await signUp(email, password);
       navigate('/create');
     } catch (error) {
-      setError(error.message);
+      setError((error as Error).message);
     }
   };
 

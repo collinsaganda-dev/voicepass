@@ -1,4 +1,4 @@
-import React from 'react';
+// React import is not needed for JSX in React 17+
 import { Link } from 'react-router-dom';
 
 export default function LandingPage() {

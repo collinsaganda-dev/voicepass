@@ -1,4 +1,4 @@
-import React from 'react';
+// React import is not needed for JSX in React 17+
 
 export default function LoadingSpinner() {
   return (

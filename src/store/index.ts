@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Session, Participant, AppState } from '../types'
+import type { Session, Participant, AppState } from '../types/index'
 
 interface AppStore extends AppState {
   setCurrentSession: (session: Session | null) => void
@@ -15,7 +15,7 @@ interface AppStore extends AppState {
 
 export const useAppStore = create<AppStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentSession: null,
       currentParticipant: null,
       isOrganizer: false,
@@ -26,7 +26,7 @@ export const useAppStore = create<AppStore>()(
 
       setCurrentSession: (session) => set({ 
         currentSession: session,
-        isOrganizer: session?.organizer_name === useAppStore.getState().currentParticipant?.participant_name 
+        isOrganizer: session?.organizer_name === get().currentParticipant?.participant_name 
       }),
       
       setCurrentParticipant: (participant) => set((state) => ({ 
@@ -48,7 +48,7 @@ export const useAppStore = create<AppStore>()(
         audioPermission: false,
         isSpeaking: false,
         isRequestingToSpeak: false,
-      }, true) // true forces state reset
+      })
     }),
     {
       name: 'voicepass-storage',

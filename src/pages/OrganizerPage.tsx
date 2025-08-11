@@ -1,35 +1,106 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function OrganizerPage() {
   const { roomCode } = useParams();
+  const [session, setSession] = useState<any>(null);
+  const [participants, setParticipants] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!roomCode) return;
+
+    const fetchSession = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('sessions')
+          .select('*')
+          .eq('room_code', roomCode)
+          .single();
+
+        if (error) throw error;
+        setSession(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching session:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
+
+    // Subscribe to real-time updates
+    const subscription = supabase
+      .from(`sessions:room_code=eq.${roomCode}`)
+      .on('*', payload => {
+        setSession(payload.new);
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [roomCode]);
+
+  const handleEndSession = async () => {
+    try {
+      await supabase
+        .from('sessions')
+        .update({ status: 'expired' })
+        .eq('room_code', roomCode);
+    } catch (error) {
+      console.error('Error ending session:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Organizer Dashboard</h1>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-700">Room Code</h2>
-            <p className="text-2xl font-mono bg-gray-100 p-2 rounded">{roomCode}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-blue-900 mb-2">Active Participants</h3>
-              <p className="text-2xl font-bold text-blue-600">0</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-green-900 mb-2">Session Status</h3>
-              <p className="text-lg font-medium text-green-600">Active</p>
-            </div>
-          </div>
-          <div className="mt-6">
-            <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
-              End Session
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+          
+          {session ? (
+            <>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-700The current Supabase client version uses a different API for real-time subscriptions. Let me fix the subscription code in OrganizerPage.tsx to use the correct Supabase real-time API.
+
+<edit_file>
+<path>src/pages/OrganizerPage.tsx</path>
+<content>
+<<<<<<< SEARCH
+    // Subscribe to real-time updates
+    const subscription = supabase
+      .from(`sessions:room_code=eq.${roomCode}`)
+      .on('*', payload => {
+        setSession(payload.new);
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+=======
+    // Subscribe to real-time updates
+    const subscription = supabase
+      .channel('public:sessions')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sessions', filter: `room_code=eq.${roomCode}` },
+        (payload) => {
+          setSession(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };

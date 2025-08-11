@@ -40,7 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
     },
-    signOut: () => supabase.auth.signOut()
+    signOut: async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    }
   };
 
   return (
