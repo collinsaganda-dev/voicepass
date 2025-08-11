@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function OrganizerPage() {
   const { roomCode } = useParams();
   const [session, setSession] = useState<any>(null);
-  const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,14 +31,18 @@ export default function OrganizerPage() {
 
     // Subscribe to real-time updates
     const subscription = supabase
-      .from(`sessions:room_code=eq.${roomCode}`)
-      .on('*', payload => {
-        setSession(payload.new);
-      })
+      .channel('public:sessions')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sessions', filter: `room_code=eq.${roomCode}` },
+        (payload: any) => {
+          setSession(payload.new);
+        }
+      )
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(subscription);
     };
   }, [roomCode]);
 
@@ -47,7 +50,7 @@ export default function OrganizerPage() {
     try {
       await supabase
         .from('sessions')
-        .update({ status: 'expired' })
+        .update({ status: 'ended' })
         .eq('room_code', roomCode);
     } catch (error) {
       console.error('Error ending session:', error);
@@ -71,36 +74,43 @@ export default function OrganizerPage() {
           {session ? (
             <>
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-700The current Supabase client version uses a different API for real-time subscriptions. Let me fix the subscription code in OrganizerPage.tsx to use the correct Supabase real-time API.
-
-<edit_file>
-<path>src/pages/OrganizerPage.tsx</path>
-<content>
-<<<<<<< SEARCH
-    // Subscribe to real-time updates
-    const subscription = supabase
-      .from(`sessions:room_code=eq.${roomCode}`)
-      .on('*', payload => {
-        setSession(payload.new);
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-=======
-    // Subscribe to real-time updates
-    const subscription = supabase
-      .channel('public:sessions')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'sessions', filter: `room_code=eq.${roomCode}` },
-        (payload) => {
-          setSession(payload.new);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">Session Details</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Room Code</p>
+                    <p className="font-medium">{session.room_code}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Session Name</p>
+                    <p className="font-medium">{session.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Status</p>
+                    <p className="font-medium">{session.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Created</p>
+                    <p className="font-medium">{new Date(session.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={handleEndSession}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+                >
+                  End Session
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600">No session found with room code: {roomCode}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

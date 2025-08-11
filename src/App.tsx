@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -8,7 +7,7 @@ import SignUpPage from './pages/SignUpPage';
 import CreateSessionPage from './pages/CreateSessionPage';
 import OrganizerPage from './pages/OrganizerPage';
 
-function App() {
+function App(): JSX.Element {
   return (
     <AuthProvider>
       <div className="App">

@@ -25,7 +25,7 @@ export default function CreateSessionPage() {
     try {
       const roomCode = generateRoomCode();
       
-      const { data: session, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('sessions')
         .insert({
           user_id: user.id,
