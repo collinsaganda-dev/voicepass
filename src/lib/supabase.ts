@@ -55,7 +55,7 @@ export const supabase: SupabaseClient<Database> = createClient(
 );
 
 // Enhanced error handling utilities
-export class SupabaseError extends Error {
+class SupabaseError extends Error {
   constructor(
     message: string,
     public code?: string,
@@ -66,7 +66,7 @@ export class SupabaseError extends Error {
   }
 }
 
-export function handleSupabaseError(error: any): SupabaseError {
+function handleSupabaseError(error: any): SupabaseError {
   if (error?.code) {
     switch (error.code) {
       case 'PGRST116':
@@ -84,6 +84,8 @@ export function handleSupabaseError(error: any): SupabaseError {
   
   return new SupabaseError(error?.message || 'Unknown error occurred');
 }
+
+export { SupabaseError, handleSupabaseError };
 
 // Enhanced session management
 export const auth = {
@@ -319,4 +321,3 @@ export const presence = {
 
 // Export types
 export type { Database } from '../types/supabase';
-export type { SupabaseError };
