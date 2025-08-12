@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
@@ -9,9 +9,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: './',
+  // Removed base: './' for Vercel deployment
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: false, // Disabled for production
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+        }
+      }
+    }
   }
 })
